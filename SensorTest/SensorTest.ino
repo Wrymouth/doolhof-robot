@@ -1,27 +1,43 @@
-#define LS1 4
-#define LS2 5
-#define LS3 6
-#define LS4 7
-#define LS5 10
+int lineSensorPins[] = { 4, 5, 6, 7, 10 };
+int lineSensorCount = sizeof lineSensorPins / sizeof lineSensorPins[0];
+bool currentLineSensorState[] = { false, false, false, false, false };
+bool previousLineSensorState[] = { false, false, false, false, false };
 
 void setup() {
   Serial.begin(9600);
   // put your setup code here, to run once:
-  pinMode(LS1, INPUT);
-  pinMode(LS2, INPUT);
-  pinMode(LS3, INPUT);
-  pinMode(LS4, INPUT);
-  pinMode(LS5, INPUT);
+  for (int i = 0; i < lineSensorCount; i++) {
+    pinMode(lineSensorPins[i], INPUT);
+  }
+}
+
+void CheckLineSensor() {
+  for (int i = 0; i < lineSensorCount; i++) {
+    previousLineSensorState[i] = currentLineSensorState[i];
+  }
+  for (int i = 0; i < lineSensorCount; i++) {
+    currentLineSensorState[i] = digitalRead(lineSensorPins[i]);
+  }
+}
+
+void printLineSensorData() {
+  Serial.println("Previous measured data:");
+  for (int i = 0; i < 5; i++) {
+    Serial.print(previousLineSensorState[i]);
+  }
+  Serial.println();
+  Serial.println("Current measured data:");
+  for (int i = 0; i < 5; i++) {
+    Serial.print(currentLineSensorState[i]);
+  }
+  Serial.println();
+  Serial.println();
 }
 
 void loop() {
-  Serial.print(digitalRead(LS1));
-  Serial.print(digitalRead(LS2));
-  Serial.print(digitalRead(LS3));
-  Serial.print(digitalRead(LS4));
-  Serial.print(digitalRead(LS5));
-  Serial.println();
-  delay(1000);
-  // put your main code here, to run repeatedly:
+  CheckLineSensor();
+  printLineSensorData();
 
+  delay(5000);
+  // put your main code here, to run repeatedly:
 }
