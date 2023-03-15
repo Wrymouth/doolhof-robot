@@ -2,7 +2,7 @@
 // bij verandering van meting rijd door en meet nogmaals
 // algorithm priority: right > straight > left > turn around
 
-// cur straight, prev straight = go straight (rechte weg)
+// prev straight, cur straight = go straight (rechte weg)
 // prev straight, cur none = turn around (doodlopende weg)
 // prev all, cur straight = go right (drie weg kruispunt)
 // prev all, cur none = go right (T kruispunt)
@@ -44,25 +44,43 @@ void loop() {
 }
 
 void solveMaze() {
-    if (!prevLine[2]) {                                                                 // vorige meting had tenminste het midden (anders gaat het fout)
-        if (prevLine[0] && prevLine[1] && prevLine[2] && prevLine[3] && prevLine[4]) {  // vorige meting was een rechte weg
-            if (curLine[0] && curLine[1] && curLine[2] && curLine[3] && curLine[4]) {   // huidige meting is een rechte weg
-                action = moveStraight;
-            } else if (!curLine[0] && !curLine[1] && !curLine[2] && !curLine[3] && !curLine[4]) {  // huidige meting is een doodlopende weg
-                action = turnAround;
-            } else if (!curLine[0] && !curLine[1] && curLine[2] && !curLine[3] && !curLine[4]) {  // huidige meting is een T kruispunt
-                action = moveRight;
-            } else if (!curLine[0] && !curLine[1] && curLine[2] && curLine[3] && curLine[4]) {  // huidige meting is een drie weg kruispunt
-                action = moveRight;
-            } else if (!curLine[0] && !curLine[1] && curLine[2] && !curLine[3] && curLine[4]) {  // huidige meting is een kruispunt rechtdoor, linksaf
-                action = moveStraight;
-            } else if (!curLine[0] && curLine[1] && curLine[2] && !curLine[3] && !curLine[4]) {  // huidige meting is een kruispunt rechtdoor, rechtsaf
-                action = moveRight;
-            } else if (!curLine[0] && curLine[1] && curLine[2] && curLine[3] && curLine[4]) {  // huidige meting is een eindpunt
-                action = finish;
-            } else if (curLine[0] && curLine[1] && !curLine[2] && curLine[3] && curLine[4]) {  // huidige meting is een bocht linksaf
-                action = moveLeft;
-            }
+    // false means road, true means wall
+    if (!prevLine[2]) {  // last measurement had road in the center (2)
+        // prev straight, cur straight
+        if (prevLine[0] && prevLine[1] && prevLine[3] && prevLine[4] && curLine[0] && curLine[1] && !curLine[2] && curLine[3] && curLine[4]) {
+            action = moveStraight;
+        } else if (prevLine[0] && prevLine[1] && prevLine[3] && prevLine[4] && curLine[0] && curLine[1] && curLine[2] && curLine[3] && curLine[4]) {
+            // prev straight, cur none
+            action = turnAround;
+        } else if (!prevLine[0] && !prevLine[1] && !prevLine[3] && !prevLine[4] && curLine[0] && curLine[1] && !curLine[2] && curLine[3] && curLine[4]) {
+            // prev all, cur straight
+            action = moveRight;
+        } else if (!prevLine[0] && !prevLine[1] && !prevLine[3] && !prevLine[4] && curLine[0] && curLine[1] && curLine[2] && curLine[3] && curLine[4]) {
+            // prev all, cur none
+            action = moveRight;
+        } else if (!prevLine[0] && !prevLine[1] && !prevLine[3] && !prevLine[4] && !curLine[0] && !curLine[1] && !curLine[2] && !curLine[3] && !curLine[4]) {
+            // prev all, cur all
+            action = finish;
+        } else if (!prevLine[0] && !prevLine[1] && prevLine[3] && prevLine[4] && curLine[0] && curLine[1] && !curLine[2] && curLine[3] && curLine[4]) {
+            // prev left, cur straight
+            action = moveStraight;
+        } else if (prevLine[0] && prevLine[1] && !prevLine[3] && !prevLine[4] && curLine[0] && curLine[1] && !curLine[2] && curLine[3] && curLine[4]) {
+            // prev right, cur straight
+            action = moveRight;
+        } else if (!prevLine[0] && !prevLine[1] && prevLine[3] && prevLine[4] && curLine[0] && curLine[1] && curLine[2] && curLine[3] && curLine[4]) {
+            // prev left, cur none
+            action = moveLeft;
+        } else if (prevLine[0] && prevLine[1] && !prevLine[3] && !prevLine[4] && curLine[0] && curLine[1] && curLine[2] && curLine[3] && curLine[4]) {
+            // prev right, cur none
+            action = moveRight;
+        } else if (prevLine[0] && prevLine[1] && prevLine[3] && prevLine[4] && curLine[0] && curLine[1] && curLine[2] && curLine[3] && curLine[4]) {
+            // prev none, cur none
+            action = error;
+        } else if (prevLine[0] && prevLine[1] && prevLine[3] && prevLine[4] && curLine[0] && curLine[1] && !curLine[2] && curLine[3] && curLine[4]) {
+            // prev none, cur straight
+            action = moveStraight;
+        } else {
+            action = error;
         }
     }
 }
