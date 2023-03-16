@@ -128,6 +128,15 @@ void brake(){
   analogWrite(leftSpeed, 0);
 }
 
+void correctError() {
+    // if the second sensor is on the line, we are too far to the left and need to correct
+    if (currentLineSensorState[0] + currentLineSensorState[1] == 1) {
+        left();
+    } else if (currentLineSensorState[3] + currentLineSensorState[4] == 1) {
+        right();
+    }
+}
+
 void printLineSensorData()
 {
     Serial.println("Previous measured data:");

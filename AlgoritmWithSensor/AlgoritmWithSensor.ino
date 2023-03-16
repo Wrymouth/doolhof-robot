@@ -26,7 +26,6 @@ enum Action
     moveLeft,
     turnAround,
     finish,
-    measureAgain,
     error
 };
 Action action = moveStraight;
@@ -149,6 +148,8 @@ void solveMaze()
         {
             action = error;
         }
+    } else {
+        action = error;
     }
 }
 
