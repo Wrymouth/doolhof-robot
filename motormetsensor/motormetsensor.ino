@@ -14,6 +14,19 @@
 // prev none, cur none = error
 // prev none, cur straight = go straight (beginpunt)
 
+// Left electromotor
+#define motorLeftDirection 13 // righting motor links
+#define leftSpeed 11  // pwm linker motor
+#define brakeLeft 8   // rem linker motor
+
+// Right electromotor
+#define motorRightDirection 12 // righting motor rechts
+#define rightSpeed 3   // pwm rechter motor
+#define brakeRight 9   // rem recher motor
+
+// Speed
+#define Speed 100 // standaart snelheid motor
+
 int lineSensorPins[5] = {4, 5, 6, 7, 10};
 int lineSensorCount = sizeof lineSensorPins / sizeof lineSensorPins[0];
 bool currentLineSensorState[5] = {false, false, false, false, false};
@@ -26,13 +39,22 @@ enum Action
     moveLeft,
     turnAround,
     finish,
-    measureAgain,
     error
 };
 Action action = moveStraight;
 
 void setup()
 {
+    pinMode(motorLeftDirection, OUTPUT);
+    pinMode(leftSpeed, OUTPUT);
+    pinMode(brakeLeft, OUTPUT);
+
+    pinMode(motorRightDirection, OUTPUT);
+    pinMode(rightSpeed, OUTPUT);
+    pinMode(brakeRight, OUTPUT);
+    //run brake function to prevent robot from leaving us
+    brake();
+
     Serial.begin(9600);
     // put your setup code here, to run once:
     for (int i = 0; i < lineSensorCount; i++)
@@ -66,6 +88,44 @@ void CheckLineSensor()
     {
         currentLineSensorState[i] = digitalRead(lineSensorPins[i]);
     }
+}
+
+void left(){
+  digitalWrite(rmotorRight, HIGH);
+  digitalWrite(rmotorLeft, LOW);
+  digitalWrite(brakeLeft, HIGH);
+  digitalWrite(brakeRight, LOW);
+  analogWrite(rightSpeed, 0);
+  analogWrite(leftSpeed, Speed);
+}
+// rechts
+void right(){
+  digitalWrite(rmotorRight, HIGH);
+  digitalWrite(rmotorLeft, LOW);
+  digitalWrite(brakeLeft, LOW);
+  digitalWrite(brakeRight, HIGH);
+  analogWrite(rightSpeed, Speed);
+  analogWrite(leftSpeed, 0);
+}
+//rechtdoor
+
+void straight(){
+  digitalWrite(rmotorRight, HIGH);
+  digitalWrite(rmotorLeft, LOW);
+  digitalWrite(brakeLeft, LOW);
+  digitalWrite(brakeRight, LOW);
+  analogWrite(rightSpeed, Speed);
+  analogWrite(leftSpeed, Speed);
+}
+
+//brake
+void brake(){
+  digitalWrite(rmotorRight, HIGH);
+  digitalWrite(rmotorLeft, HIGH);
+  digitalWrite(brakeLeft, HIGH);
+  digitalWrite(brakeRight, HIGH);
+  analogWrite(rightSpeed, 0);
+  analogWrite(leftSpeed, 0);
 }
 
 void printLineSensorData()
@@ -150,23 +210,4 @@ void solveMaze()
             action = error;
         }
     }
-}
-
-void doMoveStraight()
-{
-    // ga rechtdoor
-}
-
-void doMoveRight()
-{
-    // ga rechtsaf
-}
-
-void doMoveLeft()
-{
-    // ga linksaf
-}
-
-void drive()
-{
 }
