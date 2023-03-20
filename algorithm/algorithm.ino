@@ -23,7 +23,6 @@ enum Action {
     moveLeft,
     turnAround,
     finish,
-    measureAgain,
     error
 };
 Action action = moveStraight;
