@@ -9,7 +9,7 @@ bool debug = true;
 #define rightMotorSpeed 3
 #define rightMotorBrake 9
 // default values for motor
-#define defaultSpeed 60
+#define defaultSpeed 100
 
 // linesensor
 int lineSensorPins[] = {4, 5, 6, 7, 10};
@@ -44,15 +44,18 @@ void setup()
     setLeftMotorDirection(true);
     setLeftBrake(false);
     setRightBrake(false);
-    setLeftMotorSpeed(defaultSpeed);
-    setRightMotorSpeed(defaultSpeed);
+    // setLeftMotorSpeed(defaultSpeed);
+    // setRightMotorSpeed(defaultSpeed);
 }
 
 void loop()
 {
+    setLeftMotorSpeed(defaultSpeed);
+    setRightMotorSpeed(defaultSpeed);
     checkLineSensor();
     turnRightIfPossible();
     turnAroundAtDeadEnd();
+    checkLineSensor();
     correctLinePosition();
 }
 
@@ -60,7 +63,6 @@ void turnRightIfPossible()
 {
     if (!lineSensorState[4])
     {
-        bool keepTurning = true;
         setRightMotorSpeed(0);
         setRightBrake(true);
         while (!lineSensorState[3] && !lineSensorState[4])
@@ -76,14 +78,7 @@ void turnAroundAtDeadEnd()
 {
     if (lineSensorState[0] && lineSensorState[1] && lineSensorState[2] && lineSensorState[3] && lineSensorState[4])
     {
-        setLeftMotorSpeed(0);
-        setRightMotorSpeed(0);
-        setLeftBrake(true);
-        setRightBrake(true);
-
-        setLeftBrake(false);
-        setRightBrake(false);
-
+        makeCompleteStop();
         setLeftMotorDirection(false);
         setLeftMotorSpeed(defaultSpeed);
         setRightMotorSpeed(defaultSpeed);
@@ -91,18 +86,29 @@ void turnAroundAtDeadEnd()
         {
             checkLineSensor();
         }
-        setLeftMotorSpeed(0);
-        setRightMotorSpeed(0);
-        setLeftBrake(true);
-        setRightBrake(true);
-
-        setLeftBrake(false);
-        setRightBrake(false);
+        makeCompleteStop();
 
         setLeftMotorDirection(true);
         setLeftMotorSpeed(defaultSpeed);
         setRightMotorSpeed(defaultSpeed);
     }
+}
+
+void makeCompleteStop()
+{
+    // stop the motors
+    setLeftMotorSpeed(0);
+    setRightMotorSpeed(0);
+    // engage the brakes
+    setLeftBrake(true);
+    setRightBrake(true);
+    // wait for a while using millis
+    // unsigned long startMillis = millis();
+    // while (millis() - startMillis < 200)
+    // {
+    setLeftBrake(false);
+    setRightBrake(false);
+    // }
 }
 
 void checkLineSensor()
@@ -115,19 +121,19 @@ void checkLineSensor()
 
 void correctLinePosition()
 {
-    setLeftMotorSpeed(defaultSpeed);
-    setRightMotorSpeed(defaultSpeed);
+    // setLeftMotorSpeed(defaultSpeed);
+    // setRightMotorSpeed(defaultSpeed);
     int tooFarRight = lineSensorState[0] + lineSensorState[1];
     int tooFarLeft = lineSensorState[3] + lineSensorState[4];
     if (tooFarRight == 1)
     {
-        setLeftMotorSpeed(defaultSpeed / 4);
+        setLeftMotorSpeed(0);
         return;
     }
 
     if (tooFarLeft == 1)
     {
-        setRightMotorSpeed(defaultSpeed / 4);
+        setRightMotorSpeed(0);
         return;
     }
 }
