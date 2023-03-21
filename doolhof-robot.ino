@@ -9,7 +9,7 @@ bool debug = true;
 #define rightMotorSpeed 3
 #define rightMotorBrake 9
 // default values for motor
-#define defaultSpeed 255
+#define defaultSpeed 60
 
 // Timers
 unsigned long currentMillis;
@@ -86,25 +86,19 @@ void CheckLineSensor()
 
 void correctLinePosition()
 {
+    setLeftMotorSpeed(defaultSpeed);
+    setRightMotorSpeed(defaultSpeed);
     int tooFarRight = LineSensorState[0] + LineSensorState[1];
     int tooFarLeft = LineSensorState[3] + LineSensorState[4];
     if (tooFarRight == 1)
     {
-        while (tooFarRight == 1)
-        {
-            setLeftBrake(true);
-        }
-        setLeftBrake(false);
+        setLeftMotorSpeed(0);
         return;
     }
 
     if (tooFarLeft == 1)
     {
-        while (tooFarLeft == 1)
-        {
-            setRightBrake(true);
-        }
-        setRightBrake(false);
+        setRightMotorSpeed(0);
         return;
     }
 }
