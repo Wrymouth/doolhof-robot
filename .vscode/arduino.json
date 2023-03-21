@@ -1,5 +1,5 @@
 {
     "board": "arduino:avr:uno",
-    "port": "COM5",
-    "sketch": "AlgoritmWithSensor\\AlgoritmWithSensor.ino"
+    "port": "COM4",
+    "sketch": "dolhofrobotopplaats\\dolhofrobotopplaats.ino"
 }

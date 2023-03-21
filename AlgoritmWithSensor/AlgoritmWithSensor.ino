@@ -19,16 +19,14 @@ int lineSensorCount = sizeof lineSensorPins / sizeof lineSensorPins[0];
 bool currentLineSensorState[5] = {false, false, false, false, false};
 bool previousLineSensorState[5] = {false, false, false, false, false};
 
-enum Action
-{
-    moveStraight,
-    moveRight,
-    moveLeft,
-    turnAround,
-    finish,
-    error
+enum Action {
+    MOVE_STRAIGHT,
+    MOVE_LEFT,
+    MOVE_RIGHT,
+    TURN_AROUND,
+    FINISH,
+    ERROR
 };
-Action action = moveStraight;
 
 void setup()
 {
@@ -84,72 +82,37 @@ void printLineSensorData()
     Serial.println();
 }
 
+
+
 void solveMaze()
 {
-    // false means road, true means wall
-    if (!previousLineSensorState[2])
-    { // last measurement had road in the center (2)
-        // prev straight, cur straight
-        if (previousLineSensorState[0] && previousLineSensorState[1] && previousLineSensorState[3] && previousLineSensorState[4] && currentLineSensorState[0] && currentLineSensorState[1] && !currentLineSensorState[2] && currentLineSensorState[3] && currentLineSensorState[4])
-        {
-            action = moveStraight;
-        }
-        else if (previousLineSensorState[0] && previousLineSensorState[1] && previousLineSensorState[3] && previousLineSensorState[4] && currentLineSensorState[0] && currentLineSensorState[1] && currentLineSensorState[2] && currentLineSensorState[3] && currentLineSensorState[4])
-        {
-            // prev straight, cur none
-            action = turnAround;
-        }
-        else if (!previousLineSensorState[0] && !previousLineSensorState[1] && !previousLineSensorState[3] && !previousLineSensorState[4] && currentLineSensorState[0] && currentLineSensorState[1] && !currentLineSensorState[2] && currentLineSensorState[3] && currentLineSensorState[4])
-        {
-            // prev all, cur straight
-            action = moveRight;
-        }
-        else if (!previousLineSensorState[0] && !previousLineSensorState[1] && !previousLineSensorState[3] && !previousLineSensorState[4] && currentLineSensorState[0] && currentLineSensorState[1] && currentLineSensorState[2] && currentLineSensorState[3] && currentLineSensorState[4])
-        {
-            // prev all, cur none
-            action = moveRight;
-        }
-        else if (!previousLineSensorState[0] && !previousLineSensorState[1] && !previousLineSensorState[3] && !previousLineSensorState[4] && !currentLineSensorState[0] && !currentLineSensorState[1] && !currentLineSensorState[2] && !currentLineSensorState[3] && !currentLineSensorState[4])
-        {
-            // prev all, cur all
-            action = finish;
-        }
-        else if (!previousLineSensorState[0] && !previousLineSensorState[1] && previousLineSensorState[3] && previousLineSensorState[4] && currentLineSensorState[0] && currentLineSensorState[1] && !currentLineSensorState[2] && currentLineSensorState[3] && currentLineSensorState[4])
-        {
-            // prev left, cur straight
-            action = moveStraight;
-        }
-        else if (previousLineSensorState[0] && previousLineSensorState[1] && !previousLineSensorState[3] && !previousLineSensorState[4] && currentLineSensorState[0] && currentLineSensorState[1] && !currentLineSensorState[2] && currentLineSensorState[3] && currentLineSensorState[4])
-        {
-            // prev right, cur straight
-            action = moveRight;
-        }
-        else if (!previousLineSensorState[0] && !previousLineSensorState[1] && previousLineSensorState[3] && previousLineSensorState[4] && currentLineSensorState[0] && currentLineSensorState[1] && currentLineSensorState[2] && currentLineSensorState[3] && currentLineSensorState[4])
-        {
-            // prev left, cur none
-            action = moveLeft;
-        }
-        else if (previousLineSensorState[0] && previousLineSensorState[1] && !previousLineSensorState[3] && !previousLineSensorState[4] && currentLineSensorState[0] && currentLineSensorState[1] && currentLineSensorState[2] && currentLineSensorState[3] && currentLineSensorState[4])
-        {
-            // prev right, cur none
-            action = moveRight;
-        }
-        else if (previousLineSensorState[0] && previousLineSensorState[1] && previousLineSensorState[3] && previousLineSensorState[4] && currentLineSensorState[0] && currentLineSensorState[1] && currentLineSensorState[2] && currentLineSensorState[3] && currentLineSensorState[4])
-        {
-            // prev none, cur none
-            action = error;
-        }
-        else if (previousLineSensorState[0] && previousLineSensorState[1] && previousLineSensorState[3] && previousLineSensorState[4] && currentLineSensorState[0] && currentLineSensorState[1] && !currentLineSensorState[2] && currentLineSensorState[3] && currentLineSensorState[4])
-        {
-            // prev none, cur straight
-            action = moveStraight;
-        }
-        else
-        {
-            action = error;
-        }
-    } else {
-        action = error;
+    int previous = previousLineSensorState[1] * 1 + previousLineSensorState[3] * 2;
+    int current = currentLineSensorState[1] * 1 + currentLineSensorState[3] * 2;
+    Action action = ERROR;
+
+    switch (previous * 10 + current) {
+        case 22: // prev straight, cur straight
+            action = MOVE_STRAIGHT;
+            break;
+        case 20: // prev straight, cur none
+            action = TURN_AROUND;
+            break;
+        case 39: // prev all, cur straight
+        case 37: // prev left, cur straight
+            action = MOVE_RIGHT;
+            break;
+        case 31: // prev right, cur straight
+            action = MOVE_LEFT;
+            break;
+        case 33: // prev all, cur none
+            action = MOVE_RIGHT;
+            break;
+        case 0: // prev all, cur all
+            action = FINISH;
+            break;
+        default:
+            action = ERROR;
+            break;
     }
 }
 
