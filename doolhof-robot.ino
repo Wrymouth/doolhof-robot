@@ -11,27 +11,10 @@ bool debug = true;
 // default values for motor
 #define defaultSpeed 60
 
-// Timers
-unsigned long currentMillis;
-
 // linesensor
 int lineSensorPins[] = {4, 5, 6, 7, 10};
 int lineSensorCount = sizeof lineSensorPins / sizeof lineSensorPins[0];
-bool LineSensorState[] = {false, false, false, false, false};
-// bool previousLineSensorState[] = {false, false, false, false, false};
-
-// list of all actions
-enum Action
-{
-    MOVE_STRAIGHT,
-    MOVE_LEFT,
-    MOVE_RIGHT,
-    TURN_AROUND,
-    FINISH,
-    ERROR
-};
-// set current action to first action as default value
-// list of all actions as strings for debugging
+bool lineSensorState[] = {false, false, false, false, false};
 
 void setup()
 {
@@ -57,8 +40,8 @@ void setup()
     setRightBrake(true);
 
     // start the motors and go forward
-    setRightmoterDirection(true);
-    setLeftmoterDirection(true);
+    setRightMotorDirection(true);
+    setLeftMotorDirection(true);
     setLeftBrake(false);
     setRightBrake(false);
     setLeftMotorSpeed(defaultSpeed);
@@ -67,20 +50,66 @@ void setup()
 
 void loop()
 {
-    // currentMillis = millis();
-    CheckLineSensor();
+    checkLineSensor();
+    turnRightIfPossible();
+    turnAroundAtDeadEnd();
     correctLinePosition();
 }
 
-void CheckLineSensor()
+void turnRightIfPossible()
 {
-    // for (int i = 0; i < lineSensorCount; i++)
-    // {
-    //     previousLineSensorState[i] = currentLineSensorState[i];
-    // }
+    if (!lineSensorState[4])
+    {
+        bool keepTurning = true;
+        setRightMotorSpeed(0);
+        setRightBrake(true);
+        while (!lineSensorState[3] && !lineSensorState[4])
+        {
+            checkLineSensor();
+        }
+        setRightBrake(false);
+        setRightMotorSpeed(defaultSpeed);
+    }
+}
+
+void turnAroundAtDeadEnd()
+{
+    if (lineSensorState[0] && lineSensorState[1] && lineSensorState[2] && lineSensorState[3] && lineSensorState[4])
+    {
+        setLeftMotorSpeed(0);
+        setRightMotorSpeed(0);
+        setLeftBrake(true);
+        setRightBrake(true);
+
+        setLeftBrake(false);
+        setRightBrake(false);
+
+        setLeftMotorDirection(false);
+        setLeftMotorSpeed(defaultSpeed);
+        setRightMotorSpeed(defaultSpeed);
+        while (lineSensorState[2])
+        {
+            checkLineSensor();
+        }
+        setLeftMotorSpeed(0);
+        setRightMotorSpeed(0);
+        setLeftBrake(true);
+        setRightBrake(true);
+
+        setLeftBrake(false);
+        setRightBrake(false);
+
+        setLeftMotorDirection(true);
+        setLeftMotorSpeed(defaultSpeed);
+        setRightMotorSpeed(defaultSpeed);
+    }
+}
+
+void checkLineSensor()
+{
     for (int i = 0; i < lineSensorCount; i++)
     {
-        LineSensorState[i] = digitalRead(lineSensorPins[i]);
+        lineSensorState[i] = digitalRead(lineSensorPins[i]);
     }
 }
 
@@ -88,17 +117,17 @@ void correctLinePosition()
 {
     setLeftMotorSpeed(defaultSpeed);
     setRightMotorSpeed(defaultSpeed);
-    int tooFarRight = LineSensorState[0] + LineSensorState[1];
-    int tooFarLeft = LineSensorState[3] + LineSensorState[4];
+    int tooFarRight = lineSensorState[0] + lineSensorState[1];
+    int tooFarLeft = lineSensorState[3] + lineSensorState[4];
     if (tooFarRight == 1)
     {
-        setLeftMotorSpeed(0);
+        setLeftMotorSpeed(defaultSpeed / 4);
         return;
     }
 
     if (tooFarLeft == 1)
     {
-        setRightMotorSpeed(0);
+        setRightMotorSpeed(defaultSpeed / 4);
         return;
     }
 }
@@ -107,7 +136,7 @@ void correctLinePosition()
  *   set the direction of the right motor
  *   @param direction true = forward, false = backward
  */
-void setRightmoterDirection(bool direction)
+void setRightMotorDirection(bool direction)
 {
     if (direction)
     {
@@ -121,7 +150,7 @@ void setRightmoterDirection(bool direction)
  *   set the direction of the left motor
  *   @param direction true = forward, false = backward
  */
-void setLeftmoterDirection(bool direction)
+void setLeftMotorDirection(bool direction)
 {
     if (direction)
     {
