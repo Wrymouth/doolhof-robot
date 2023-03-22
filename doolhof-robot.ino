@@ -9,7 +9,7 @@ bool debug = true;
 #define rightMotorSpeed 3
 #define rightMotorBrake 9
 // default values for motor
-#define defaultSpeed 100
+#define defaultSpeed 65
 
 // linesensor
 int lineSensorPins[] = {4, 5, 6, 7, 10};
@@ -47,9 +47,19 @@ void setup()
     // setLeftMotorSpeed(defaultSpeed);
     // setRightMotorSpeed(defaultSpeed);
 }
-
+const bool Initialized = false;
+// milies
+unsigned long initTime = millis();
 void loop()
 {
+    if (!Initialized)
+    {
+        if (millis() - initTime > 5000)
+        {
+            Initialized = true;
+        }
+        return;
+    }
     setLeftMotorSpeed(defaultSpeed);
     setRightMotorSpeed(defaultSpeed);
     checkLineSensor();
@@ -59,8 +69,48 @@ void loop()
     correctLinePosition();
 }
 
+void doFinish()
+{
+    makeCompleteStop();
+    setLeftMotorDirection(false);
+    setRightMotorDirection(false);
+    setLeftMotorSpeed(defaultSpeed);
+    setRightMotorSpeed(defaultSpeed);
+    while (true)
+    {
+        checkLineSensor();
+    }
+}
+
 void turnRightIfPossible()
 {
+    if (!lineSensorState[0] && !lineSensorState[1] && !lineSensorState[2] && !lineSensorState[3] && !lineSensorState[4])
+    {
+        unsigned long startMillis = millis();
+        while (millis() - startMillis < 250)
+        {
+            checkLineSensor();
+            if (lineSensorState[0] && lineSensorState[1] && lineSensorState[2] && lineSensorState[3] && lineSensorState[4])
+            {
+                makeCompleteStop();
+                setRightMotorDirection(false);
+                setLeftMotorSpeed(defaultSpeed);
+                setRightMotorSpeed(defaultSpeed);
+                while (lineSensorState[2])
+                {
+                    checkLineSensor();
+                }
+                makeCompleteStop();
+
+                setRightMotorDirection(true);
+                setLeftMotorSpeed(defaultSpeed);
+                setRightMotorSpeed(defaultSpeed);
+                return;
+            }
+        }
+        // finished i think
+        doFinish();
+    }
     if (!lineSensorState[4])
     {
         setRightMotorSpeed(0);
@@ -102,13 +152,9 @@ void makeCompleteStop()
     // engage the brakes
     setLeftBrake(true);
     setRightBrake(true);
-    // wait for a while using millis
-    // unsigned long startMillis = millis();
-    // while (millis() - startMillis < 200)
-    // {
+    // release the brakes
     setLeftBrake(false);
     setRightBrake(false);
-    // }
 }
 
 void checkLineSensor()
