@@ -1,4 +1,4 @@
-bool debug = true;
+bool debug = false;
 // left motor
 #define leftMotorDirection 13
 #define leftMotorSpeed 11
@@ -10,6 +10,9 @@ bool debug = true;
 #define rightMotorBrake 9
 // default values for motor
 #define defaultSpeed 65
+// pingsensor
+const int trigPin = A4;
+const int echoPin = A5;
 
 // linesensor
 int lineSensorPins[] = {4, 5, 6, 7, 10};
@@ -35,6 +38,9 @@ void setup()
     pinMode(rightMotorDirection, OUTPUT);
     pinMode(rightMotorSpeed, OUTPUT);
     pinMode(rightMotorBrake, OUTPUT);
+    // setup ping sensor
+    pinMode(trigPin, OUTPUT);
+    pinMode(echoPin, INPUT);
     // engage the brakes to prevent the robot from running away;
     setLeftBrake(true);
     setRightBrake(true);
@@ -44,24 +50,22 @@ void setup()
     setLeftMotorDirection(true);
     setLeftBrake(false);
     setRightBrake(false);
-    // setLeftMotorSpeed(defaultSpeed);
-    // setRightMotorSpeed(defaultSpeed);
 }
-const bool Initialized = false;
-// milies
-unsigned long initTime = millis();
+bool initialized = false;
 void loop()
 {
-    if (!Initialized)
+    if (!initialized)
     {
-        if (millis() - initTime > 5000)
+        checkLineSensor();
+        if (lineSensorState[0] && lineSensorState[1] && !lineSensorState[2] && lineSensorState[3] && lineSensorState[4])
         {
-            Initialized = true;
+            initialized = true;
         }
         return;
     }
     setLeftMotorSpeed(defaultSpeed);
     setRightMotorSpeed(defaultSpeed);
+    turnAroundIfObjectDetected();
     checkLineSensor();
     turnRightIfPossible();
     turnAroundAtDeadEnd();
@@ -69,16 +73,39 @@ void loop()
     correctLinePosition();
 }
 
+void turnAroundIfObjectDetected()
+{
+    // give 10 microseconds pulse on trig pin to send a sound wave
+    digitalWrite(trigPin, HIGH);
+    delayMicroseconds(10);
+    digitalWrite(trigPin, LOW);
+    // measure duration of pulse from ECHO pin
+    float duration_us = pulseIn(echoPin, HIGH);
+    // calculate the distance
+    float distance_cm = 0.017 * duration_us;
+    if (debug)
+    {
+        Serial.print("distance: ");
+        Serial.print(distance_cm);
+        Serial.println(" cm");
+    }
+    if (distance_cm < 10 && distance_cm > 0)
+    {
+        makeCompleteStop();
+    }
+}
+
 void doFinish()
 {
     makeCompleteStop();
-    setLeftMotorDirection(false);
-    setRightMotorDirection(false);
-    setLeftMotorSpeed(defaultSpeed);
-    setRightMotorSpeed(defaultSpeed);
-    while (true)
+    // wait for 10 seconds using millis
+    unsigned long startMillis = millis();
+    // reset the initialized variable for the next run
+    initialized = false;
+    while (millis() - startMillis < 10000)
     {
-        checkLineSensor();
+        if (debug)
+            Serial.println("finished");
     }
 }
 
@@ -123,24 +150,28 @@ void turnRightIfPossible()
         setRightMotorSpeed(defaultSpeed);
     }
 }
+void turnLeftTillLineFound()
+{
+    makeCompleteStop();
+    setLeftMotorDirection(false);
+    setLeftMotorSpeed(defaultSpeed);
+    setRightMotorSpeed(defaultSpeed);
+    while (lineSensorState[2])
+    {
+        checkLineSensor();
+    }
+    makeCompleteStop();
+
+    setLeftMotorDirection(true);
+    setLeftMotorSpeed(defaultSpeed);
+    setRightMotorSpeed(defaultSpeed);
+}
 
 void turnAroundAtDeadEnd()
 {
     if (lineSensorState[0] && lineSensorState[1] && lineSensorState[2] && lineSensorState[3] && lineSensorState[4])
     {
-        makeCompleteStop();
-        setLeftMotorDirection(false);
-        setLeftMotorSpeed(defaultSpeed);
-        setRightMotorSpeed(defaultSpeed);
-        while (lineSensorState[2])
-        {
-            checkLineSensor();
-        }
-        makeCompleteStop();
-
-        setLeftMotorDirection(true);
-        setLeftMotorSpeed(defaultSpeed);
-        setRightMotorSpeed(defaultSpeed);
+        turnLeftTillLineFound();
     }
 }
 
