@@ -5,7 +5,10 @@
 #define rightMotorDirection 12
 #define rightMotorSpeed 3
 // default values for motor
-#define defaultSpeed 65
+#define adapterDefaultSpeed 65
+#define batteryDefaultSpeed 80
+const bool onBattery = true;
+const int defaultSpeed = (onBattery) ? batteryDefaultSpeed : adapterDefaultSpeed;
 
 // 7 segment display
 #define u1 1
@@ -53,10 +56,17 @@ void loop()
         return;
     setLeftMotorSpeed(defaultSpeed);
     setRightMotorSpeed(defaultSpeed);
-    turnAroundIfObjectDetected();
+    // turnAroundIfObjectDetected();
+
     checkLineSensor();
+    correctLinePosition();
+
     finishOrTurnRight();
+    correctLinePosition();
+
     turnRightIfPossible();
+    correctLinePosition();
+
     turnLeftWhenNothingDetected();
     correctLinePosition();
 }
@@ -120,8 +130,8 @@ void finishOrTurnRight()
     if (!lineSensorState[0] && !lineSensorState[1] && !lineSensorState[2] && !lineSensorState[3] && !lineSensorState[4])
     {
         unsigned long startMillis = millis();
-        // let the robot drive for 250 ms
-        while (millis() - startMillis < 250)
+        // let the robot drive for 280 ms
+        while (millis() - startMillis < 280)
         {
             checkLineSensor();
             // if the robot detects it is not on the finish line, turn right
@@ -160,7 +170,6 @@ void turnTillLineFound(bool direction)
 {
     makeCompleteStop();
     (direction) ? setRightMotorDirection(false) : setLeftMotorDirection(false);
-    setRightMotorDirection(false);
     setLeftMotorSpeed(defaultSpeed);
     setRightMotorSpeed(defaultSpeed);
     while (lineSensorState[2])
@@ -169,7 +178,7 @@ void turnTillLineFound(bool direction)
     }
     makeCompleteStop();
 
-    setRightMotorDirection(true);
+    (direction) ? setRightMotorDirection(true) : setLeftMotorDirection(true);
     setLeftMotorSpeed(defaultSpeed);
     setRightMotorSpeed(defaultSpeed);
 }
