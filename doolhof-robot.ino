@@ -7,7 +7,8 @@
 // default values for motor
 #define adapterDefaultSpeed 65
 #define batteryDefaultSpeed 80
-const bool onBattery = true;
+// set the default speed based on the power source
+const bool onBattery = false;
 const int defaultSpeed = (onBattery) ? batteryDefaultSpeed : adapterDefaultSpeed;
 
 // 7 segment display
@@ -16,7 +17,7 @@ const int defaultSpeed = (onBattery) ? batteryDefaultSpeed : adapterDefaultSpeed
 const int displayPins[] = {4, 5, 6, 7, 8, 9, 10};
 
 // pingsensor
-const int trigPin = 2;
+const int trigPin = 0;
 const int echoPin = A5;
 // linesensor
 const int lineSensorPins[] = {A0, A1, A2, A3, A4};
@@ -25,7 +26,7 @@ bool lineSensorState[] = {false, false, false, false, false};
 
 // value to determine if the robot should run
 bool initialized = false;
-
+unsigned long pingSensorMillis = millis();
 void setup()
 {
     // setup the line sensors
@@ -54,19 +55,27 @@ void loop()
 {
     if (!checkIfRobotIsInitialized())
         return;
+    // make the robot go forward
     setLeftMotorSpeed(defaultSpeed);
     setRightMotorSpeed(defaultSpeed);
-    // turnAroundIfObjectDetected();
 
+    // check if there is a object in front of the robot
+    if (millis() - pingSensorMillis > 500)
+    {
+        turnAroundIfObjectDetected();
+        pingSensorMillis = millis();
+    }
+
+    // check the line sensors
     checkLineSensor();
     correctLinePosition();
-
+    // check if the robot is on the finish line or if it should turn right
     finishOrTurnRight();
     correctLinePosition();
-
+    // check if the robot is able to turn right
     turnRightIfPossible();
     correctLinePosition();
-
+    // check if the robot should go left
     turnLeftWhenNothingDetected();
     correctLinePosition();
 }
@@ -91,22 +100,22 @@ bool checkIfRobotIsInitialized()
 
 /**
  * Check the ping sensor and turn around if an object is detected
- * Todo: This function is not working for some weird reason, even though the sensor seems to be working fine
  */
 void turnAroundIfObjectDetected()
 {
     // give 10 microseconds pulse on trig pin to send a sound wave
+    digitalWrite(trigPin, LOW);
+    delayMicroseconds(5);
     digitalWrite(trigPin, HIGH);
     delayMicroseconds(10);
     digitalWrite(trigPin, LOW);
     // measure duration of pulse from ECHO pin
-    float duration_us = pulseIn(echoPin, HIGH);
-    // calculate the distance
-    float distance_cm = 0.017 * duration_us;
+    float duration = pulseIn(echoPin, HIGH);
+    float cm = (duration / 2) / 29.1;
     // if the distance is less than 10 cm, turn around
-    if (distance_cm < 10 && distance_cm > 0)
+    if (cm < 10 && cm > 0)
     {
-        turnTillLineFound(true);
+        turnAround();
     }
 }
 /**
@@ -115,8 +124,6 @@ void turnAroundIfObjectDetected()
 void finish()
 {
     makeCompleteStop();
-    // wait for 10 seconds using millis
-    unsigned long startMillis = millis();
     // reset the initialized variable for the next run
     initialized = false;
 }
@@ -182,7 +189,28 @@ void turnTillLineFound(bool direction)
     setLeftMotorSpeed(defaultSpeed);
     setRightMotorSpeed(defaultSpeed);
 }
-
+/**
+ * turn the robot 180 degrees
+ */
+void turnAround()
+{
+    makeCompleteStop();
+    setRightMotorDirection(false);
+    setLeftMotorSpeed(defaultSpeed);
+    setRightMotorSpeed(defaultSpeed);
+    while (!lineSensorState[2])
+    {
+        checkLineSensor();
+    }
+    while (lineSensorState[2])
+    {
+        checkLineSensor();
+    }
+    makeCompleteStop();
+    setRightMotorDirection(true);
+    setLeftMotorSpeed(defaultSpeed);
+    setRightMotorSpeed(defaultSpeed);
+}
 /**
  * turn left if the robots sensors detect no line
  */
