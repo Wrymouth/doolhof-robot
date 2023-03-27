@@ -52,6 +52,9 @@ void loop()
     // displaySt();
 }
 
+void countdown() {
+    
+}
 void displaySt()
 {
     for (int i = 0; i < SEGMENT_ARRAY_SIZE; i++)
