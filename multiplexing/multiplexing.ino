@@ -47,13 +47,35 @@ void setup()
 void loop()
 {
     switchDisplay();
-    displayDigits(13);
+    // countdown();
+    // displayDigits(13);
     // displayFi();
     // displaySt();
 }
 
-void countdown() {
-    
+void countdown()
+{
+    // count down from 10 to 1 and display it on the 7 segment display every second
+    int i = 10;
+    long startTime = millis();
+    while (i >= 1)
+    {
+        switchDisplay();
+        displayDigits(i);
+
+        if (millis() - startTime >= 1000)
+        {
+            startTime = millis();
+            i--;
+        }
+    }
+    // display the letters "ST" on the 7 segment display for 1 second
+    startTime = millis();
+    while (startTime + 1000 > millis())
+    {
+        switchDisplay();
+        displaySt();
+    }
 }
 void displaySt()
 {
