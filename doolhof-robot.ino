@@ -8,7 +8,7 @@
 #define adapterDefaultSpeed 65
 #define batteryDefaultSpeed 80
 // set the default speed based on the power source
-const bool onBattery = false;
+const bool onBattery = true;
 const int defaultSpeed = (onBattery) ? batteryDefaultSpeed : adapterDefaultSpeed;
 
 // 7 segment display
@@ -113,7 +113,7 @@ void turnAroundIfObjectDetected()
     float duration = pulseIn(echoPin, HIGH);
     float cm = (duration / 2) / 29.1;
     // if the distance is less than 10 cm, turn around
-    if (cm < 10 && cm > 0)
+    if (cm < 15 && cm > 0)
     {
         turnAround();
     }
