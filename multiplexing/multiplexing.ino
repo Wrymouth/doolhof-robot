@@ -1,36 +1,4 @@
-// 7 segment display
-const int SEVEN_SEGMENT_LEDS[] = {4, 5, 6, 7, 8, 9, 10};
-const int SEGMENT_ARRAY_SIZE = sizeof(SEVEN_SEGMENT_LEDS) / sizeof(int);
-const int LETTER_COUNT = 4;
-const int NUMBER_COUNT = 10;
-#define u1 1
-#define u2 2
-// letters for the 7 segment display
-const int LETTERS[LETTER_COUNT][SEGMENT_ARRAY_SIZE] = {
-    {HIGH, LOW, HIGH, HIGH, LOW, HIGH, HIGH}, // S
-    {LOW, LOW, LOW, HIGH, HIGH, HIGH, HIGH},  // T
-    {HIGH, LOW, LOW, LOW, HIGH, HIGH, HIGH},  // F
-    {LOW, LOW, LOW, LOW, HIGH, HIGH, LOW},    // I
-};
-// numbers for the 7 segment display
-const int NUMBERS[NUMBER_COUNT][SEGMENT_ARRAY_SIZE] = {
-    {HIGH, HIGH, HIGH, HIGH, HIGH, HIGH, LOW},  // 0
-    {LOW, HIGH, HIGH, LOW, LOW, LOW, LOW},      // 1
-    {HIGH, HIGH, LOW, HIGH, HIGH, LOW, HIGH},   // 2
-    {HIGH, HIGH, HIGH, HIGH, LOW, LOW, HIGH},   // 3
-    {LOW, HIGH, HIGH, LOW, LOW, HIGH, HIGH},    // 4
-    {HIGH, LOW, HIGH, HIGH, LOW, HIGH, HIGH},   // 5
-    {HIGH, LOW, HIGH, HIGH, HIGH, HIGH, HIGH},  // 6
-    {HIGH, HIGH, HIGH, LOW, LOW, LOW, LOW},     // 7
-    {HIGH, HIGH, HIGH, HIGH, HIGH, HIGH, HIGH}, // 8
-    {HIGH, HIGH, HIGH, HIGH, LOW, HIGH, HIGH},  // 9
-};
-// the current display state
-bool targetLeftDisplay = true;
-unsigned long lastSwitchTime = 0;
-// the runtime in seconds
-int runTime = 31;
-unsigned long lastRunTimeUpdate = millis();
+
 
 void setup()
 {
