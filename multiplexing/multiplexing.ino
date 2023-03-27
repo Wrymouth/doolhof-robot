@@ -3,6 +3,8 @@ const int SEVEN_SEGMENT_LEDS[] = {4, 5, 6, 7, 8, 9, 10};
 const int SEGMENT_ARRAY_SIZE = sizeof(SEVEN_SEGMENT_LEDS) / sizeof(int);
 const int LETTER_COUNT = 4;
 const int NUMBER_COUNT = 10;
+#define u1 1
+#define u2 2
 // letters for the 7 segment display
 const int LETTERS[LETTER_COUNT][SEGMENT_ARRAY_SIZE] = {
     {HIGH, LOW, HIGH, HIGH, LOW, HIGH, HIGH}, // S
@@ -23,13 +25,12 @@ const int NUMBERS[NUMBER_COUNT][SEGMENT_ARRAY_SIZE] = {
     {HIGH, HIGH, HIGH, HIGH, HIGH, HIGH, HIGH}, // 8
     {HIGH, HIGH, HIGH, HIGH, LOW, HIGH, HIGH},  // 9
 };
-
+// the current display state
 bool targetLeftDisplay = true;
 unsigned long lastSwitchTime = 0;
-
-// 7 segment display
-#define u1 1
-#define u2 2
+// the runtime in seconds
+int runTime = 0;
+unsigned long lastRunTimeUpdate = millis();
 
 void setup()
 {
@@ -47,12 +48,27 @@ void setup()
 void loop()
 {
     switchDisplay();
+    countRunTime();
     // countdown();
     // displayDigits(13);
     // displayFi();
     // displaySt();
 }
-
+/**
+ * count the runtime in seconds and update the runTime variable
+ */
+void countRunTime()
+{
+    if (millis() - lastRunTimeUpdate >= 1000)
+    {
+        lastRunTimeUpdate = millis();
+        runTime++;
+    }
+    displayDigits(runTime);
+}
+/**
+ * countdown from 10 to 1 and show it on the 7 segment display, after 1 show st.
+ */
 void countdown()
 {
     // count down from 10 to 1 and display it on the 7 segment display every second
@@ -77,6 +93,9 @@ void countdown()
         displaySt();
     }
 }
+/**
+ * Display the letters "ST" on the 7 segment display
+ */
 void displaySt()
 {
     for (int i = 0; i < SEGMENT_ARRAY_SIZE; i++)
@@ -91,7 +110,9 @@ void displaySt()
         }
     }
 }
-
+/**
+ * Display the letters "FI" on the 7 segment display
+ */
 void displayFi()
 {
     for (int i = 0; i < SEGMENT_ARRAY_SIZE; i++)
@@ -106,7 +127,10 @@ void displayFi()
         }
     }
 }
-
+/**
+ * Display the digits on the 7 segment display
+ * @param number the number to display
+ */
 void displayDigits(int number)
 {
     // set first digit to 0 if the number is less than 10
@@ -132,7 +156,9 @@ void displayDigits(int number)
         }
     }
 }
-
+/**
+ * Switch from left to right display and vice versa. This is done to multiplex the 7 segment display.
+ */
 void switchDisplay()
 {
     if (millis() - lastSwitchTime > 10)
