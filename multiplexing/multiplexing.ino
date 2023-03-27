@@ -4,7 +4,7 @@ const int LETTER_COUNT = 4;
 const int NUMBER_COUNT = 10;
 
 const int LETTERS[LETTER_COUNT][SEGMENT_ARRAY_SIZE] = {
-    {HIGH, LOW, HIGH, HIGH, HIGH, LOW, HIGH},  // dit is de S
+    {HIGH, LOW, HIGH, HIGH, LOW, HIGH, HIGH},  // dit is de S
     {LOW, LOW, LOW, HIGH, HIGH, HIGH, HIGH},   // dit is de T
     {HIGH, LOW, LOW, LOW, HIGH, HIGH, HIGH},   // dit is de F
     {LOW, LOW, LOW, LOW, HIGH, HIGH, LOW},     // dit is de I
@@ -62,6 +62,8 @@ void setup() {
     for (int i = 0; i < SEGMENT_ARRAY_SIZE; i++) {
         pinMode(SEVEN_SEGMENT_LEDS[i], OUTPUT);
     }
+    pinMode(u1, OUTPUT);
+    pinMode(u2, OUTPUT);
     digitalWrite(u1, HIGH);
     digitalWrite(u2, LOW);
 
@@ -82,27 +84,13 @@ void setup() {
 }
 
 void loop() {
-    digitalWrite(4,HIGH);
-    delay(100);
-    // switchDisplay();
-    // displaySt();
-    // if (!checkIfRobotIsInitialized())
-    //     return;
-    // setLeftMotorSpeed(defaultSpeed);
-    // setRightMotorSpeed(defaultSpeed);
-    // // turnAroundIfObjectDetected();
-
-    // checkLineSensor();
-    // correctLinePosition();
-
-    // finishOrTurnRight();
-    // correctLinePosition();
-
-    // turnRightIfPossible();
-    // correctLinePosition();
-
-    // turnLeftWhenNothingDetected();
-    // correctLinePosition();
+    switchDisplay();
+    displayDigits(30);
+    if (!checkIfRobotIsInitialized())
+        return;
+    setLeftMotorSpeed(defaultSpeed);
+    setRightMotorSpeed(defaultSpeed);
+    // turnAroundIfObjectDetected();
 }
 
 /**
