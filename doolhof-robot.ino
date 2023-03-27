@@ -15,7 +15,6 @@ const int ECHO_PIN = A5;
 // linesensor
 const int LINE_SENSOR_PINS[] = {A0, A1, A2, A3, A4};
 const int LINE_SENSOR_COUNT = sizeof LINE_SENSOR_PINS / sizeof LINE_SENSOR_PINS[0];
-bool lineSensorState[] = {false, false, false, false, false};
 // set speed based on connected power source
 const bool ON_BATTERY = true;
 const int DEFAULT_SPEED = (ON_BATTERY) ? BATTERY_DEFAULT_SPEED : ADAPTER_DEFAULT_SPEED;
@@ -51,6 +50,7 @@ const int NUMBERS[NUMBER_COUNT][SEGMENT_ARRAY_SIZE] = {
     {HIGH, HIGH, HIGH, HIGH, LOW, HIGH, HIGH},  // 9
 };
 
+bool lineSensorState[] = {false, false, false, false, false};
 // the current display state
 bool targetLeftDisplay = true;
 unsigned long lastSwitchTime = 0;
@@ -518,27 +518,48 @@ void blinkDisplayFinish(bool showInMinutes)
 {
     unsigned long lastBlinkTime = millis();
     int amountOfBlinks = 0;
-    bool displayFinish = true;
-    while (amountOfBlinks <= 4)
+    int toDisplay = 0;
+    while (amountOfBlinks <= 6)
     {
         // check if int is even
         switchDisplay();
         if (millis() - lastBlinkTime > 500)
         {
-            displayFinish = !displayFinish;
+            if (toDisplay < 3)
+            {
+                toDisplay++;
+            }
+            else
+            {
+                toDisplay = 0;
+            }
             amountOfBlinks++;
             lastBlinkTime = millis();
         }
-        if (displayFinish)
+        switch (toDisplay)
         {
-            if (showInMinutes)
-                displayDigits(runTimeInMinutes);
-            if (!showInMinutes)
-                displayDigits(runTimeInSeconds);
-        }
-        else
-        {
+        case 0:
+            displayDigits(runTimeInMinutes);
+            break;
+        case 1:
+            displayDigits(runTimeInSeconds);
+            break;
+        case 2:
             clearDisplay();
+            break;
+        default:
+            break;
         }
+        // if (displayFinish)
+        // {
+        //     if (showInMinutes)
+        //         displayDigits(runTimeInMinutes);
+        //     if (!showInMinutes)
+        //         displayDigits(runTimeInSeconds);
+        // }
+        // else
+        // {
+        //     clearDisplay();
+        // }
     }
 }
