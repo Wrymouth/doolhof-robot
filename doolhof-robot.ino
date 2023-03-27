@@ -1,23 +1,35 @@
 // left motor
-#define leftMotorDirection 13
-#define leftMotorSpeed 11
+#define LEFT_MOTOR_DIRECTION 13
+#define LEFT_MOTOR_SPEED 11
 // right motor
-#define rightMotorDirection 12
-#define rightMotorSpeed 3
+#define RIGHT_MOTOR_DIRECTION 12
+#define RIGHT_MOTOR_SPEED 3
 // default values for motor
-#define adapterDefaultSpeed 65
-#define batteryDefaultSpeed 80
+#define ADAPTER_DEFAULT_SPEED 65
+#define BATTERY_DEFAULT_SPEED 80
 // set the default speed based on the power source
-const bool onBattery = true;
-const int defaultSpeed = (onBattery) ? batteryDefaultSpeed : adapterDefaultSpeed;
+
+// pingsensor
+const int TRIG_PIN = 0;
+const int ECHO_PIN = A5;
+// linesensor
+const int LINE_SENSOR_PINS[] = {A0, A1, A2, A3, A4};
+const int LINE_SENSOR_COUNT = sizeof LINE_SENSOR_PINS / sizeof LINE_SENSOR_PINS[0];
+bool lineSensorState[] = {false, false, false, false, false};
+// set speed based on connected power source
+const bool ON_BATTERY = true;
+const int DEFAULT_SPEED = (ON_BATTERY) ? BATTERY_DEFAULT_SPEED : ADAPTER_DEFAULT_SPEED;
 
 // 7 segment display
 const int SEVEN_SEGMENT_LEDS[] = {4, 5, 6, 7, 8, 9, 10};
 const int SEGMENT_ARRAY_SIZE = sizeof(SEVEN_SEGMENT_LEDS) / sizeof(int);
+
+#define U1 1
+#define U2 2
+
 const int LETTER_COUNT = 4;
 const int NUMBER_COUNT = 10;
-#define u1 1
-#define u2 2
+
 // letters for the 7 segment display
 const int LETTERS[LETTER_COUNT][SEGMENT_ARRAY_SIZE] = {
     {HIGH, LOW, HIGH, HIGH, LOW, HIGH, HIGH}, // S
@@ -38,6 +50,7 @@ const int NUMBERS[NUMBER_COUNT][SEGMENT_ARRAY_SIZE] = {
     {HIGH, HIGH, HIGH, HIGH, HIGH, HIGH, HIGH}, // 8
     {HIGH, HIGH, HIGH, HIGH, LOW, HIGH, HIGH},  // 9
 };
+
 // the current display state
 bool targetLeftDisplay = true;
 unsigned long lastSwitchTime = 0;
@@ -45,24 +58,17 @@ unsigned long lastSwitchTime = 0;
 int runTime = 0;
 unsigned long lastRunTimeUpdate = millis();
 
-// pingsensor
-const int trigPin = 0;
-const int echoPin = A5;
-// linesensor
-const int lineSensorPins[] = {A0, A1, A2, A3, A4};
-const int lineSensorCount = sizeof lineSensorPins / sizeof lineSensorPins[0];
-bool lineSensorState[] = {false, false, false, false, false};
-
 // value to determine if the robot should run
 bool initialized = false;
-bool isFinnished = false;
+bool isFinished = false;
 unsigned long pingSensorMillis = millis();
+
 void setup()
 {
     // setup the line sensors
-    for (int i = 0; i < lineSensorCount; i++)
+    for (int i = 0; i < LINE_SENSOR_COUNT; i++)
     {
-        pinMode(lineSensorPins[i], INPUT);
+        pinMode(LINE_SENSOR_PINS[i], INPUT);
     }
 
     // setup the 7 segment display
@@ -70,21 +76,21 @@ void setup()
     {
         pinMode(SEVEN_SEGMENT_LEDS[i], OUTPUT);
     }
-    pinMode(u1, OUTPUT);
-    pinMode(u2, OUTPUT);
-    digitalWrite(u1, HIGH);
-    digitalWrite(u2, LOW);
+    pinMode(U1, OUTPUT);
+    pinMode(U2, OUTPUT);
+    digitalWrite(U1, HIGH);
+    digitalWrite(U2, LOW);
 
     // setup left motor
-    pinMode(leftMotorDirection, OUTPUT);
-    pinMode(leftMotorSpeed, OUTPUT);
+    pinMode(LEFT_MOTOR_DIRECTION, OUTPUT);
+    pinMode(LEFT_MOTOR_SPEED, OUTPUT);
 
     // setup right motor
-    pinMode(rightMotorDirection, OUTPUT);
-    pinMode(rightMotorSpeed, OUTPUT);
+    pinMode(RIGHT_MOTOR_DIRECTION, OUTPUT);
+    pinMode(RIGHT_MOTOR_SPEED, OUTPUT);
     // setup ping sensor
-    pinMode(trigPin, OUTPUT);
-    pinMode(echoPin, INPUT);
+    pinMode(TRIG_PIN, OUTPUT);
+    pinMode(ECHO_PIN, INPUT);
 
     // start the motors and go forward
     setRightMotorDirection(true);
@@ -95,7 +101,7 @@ void loop()
 {
     switchDisplay();
     // check if the robot should run
-    if (isFinnished)
+    if (isFinished)
     {
         displayFi();
     }
@@ -104,8 +110,8 @@ void loop()
         return;
 
     // make the robot go forward
-    setLeftMotorSpeed(defaultSpeed);
-    setRightMotorSpeed(defaultSpeed);
+    setLeftMotorSpeed(DEFAULT_SPEED);
+    setRightMotorSpeed(DEFAULT_SPEED);
 
     // update the runtime
     countRunTime();
@@ -122,6 +128,9 @@ void loop()
     correctLinePosition();
     // check if the robot is on the finish line or if it should turn right
     finishOrTurnRight();
+    if (isFinished)
+        return;
+
     correctLinePosition();
     // check if the robot is able to turn right
     turnRightIfPossible();
@@ -144,7 +153,7 @@ bool checkIfRobotIsInitialized()
     {
         countdown();
         runTime = 0;
-        isFinnished = false;
+        isFinished = false;
         initialized = true;
     }
 
@@ -157,13 +166,13 @@ bool checkIfRobotIsInitialized()
 void turnAroundIfObjectDetected()
 {
     // give 10 microseconds pulse on trig pin to send a sound wave
-    digitalWrite(trigPin, LOW);
+    digitalWrite(TRIG_PIN, LOW);
     delayMicroseconds(5);
-    digitalWrite(trigPin, HIGH);
+    digitalWrite(TRIG_PIN, HIGH);
     delayMicroseconds(10);
-    digitalWrite(trigPin, LOW);
+    digitalWrite(TRIG_PIN, LOW);
     // measure duration of pulse from ECHO pin
-    float duration = pulseIn(echoPin, HIGH);
+    float duration = pulseIn(ECHO_PIN, HIGH);
     float cm = (duration / 2) / 29.1;
     // if the distance is less than 10 cm, turn around
     if (cm < 15 && cm > 0)
@@ -180,7 +189,7 @@ void finish()
     blinkDisplayFinish();
     // reset the initialized variable for the next run
     initialized = false;
-    isFinnished = true;
+    isFinished = true;
 }
 
 /**
@@ -220,7 +229,7 @@ void turnRightIfPossible()
         {
             checkLineSensor();
         }
-        setRightMotorSpeed(defaultSpeed);
+        setRightMotorSpeed(DEFAULT_SPEED);
     }
 }
 
@@ -232,8 +241,8 @@ void turnTillLineFound(bool direction)
 {
     makeCompleteStop();
     (direction) ? setRightMotorDirection(false) : setLeftMotorDirection(false);
-    setLeftMotorSpeed(defaultSpeed);
-    setRightMotorSpeed(defaultSpeed);
+    setLeftMotorSpeed(DEFAULT_SPEED);
+    setRightMotorSpeed(DEFAULT_SPEED);
     while (lineSensorState[2])
     {
         checkLineSensor();
@@ -241,8 +250,8 @@ void turnTillLineFound(bool direction)
     makeCompleteStop();
 
     (direction) ? setRightMotorDirection(true) : setLeftMotorDirection(true);
-    setLeftMotorSpeed(defaultSpeed);
-    setRightMotorSpeed(defaultSpeed);
+    setLeftMotorSpeed(DEFAULT_SPEED);
+    setRightMotorSpeed(DEFAULT_SPEED);
 }
 /**
  * turn the robot 180 degrees
@@ -251,8 +260,8 @@ void turnAround()
 {
     makeCompleteStop();
     setRightMotorDirection(false);
-    setLeftMotorSpeed(defaultSpeed);
-    setRightMotorSpeed(defaultSpeed);
+    setLeftMotorSpeed(DEFAULT_SPEED);
+    setRightMotorSpeed(DEFAULT_SPEED);
     while (!lineSensorState[2])
     {
         checkLineSensor();
@@ -263,8 +272,8 @@ void turnAround()
     }
     makeCompleteStop();
     setRightMotorDirection(true);
-    setLeftMotorSpeed(defaultSpeed);
-    setRightMotorSpeed(defaultSpeed);
+    setLeftMotorSpeed(DEFAULT_SPEED);
+    setRightMotorSpeed(DEFAULT_SPEED);
 }
 /**
  * turn left if the robots sensors detect no line
@@ -291,9 +300,9 @@ void makeCompleteStop()
  */
 void checkLineSensor()
 {
-    for (int i = 0; i < lineSensorCount; i++)
+    for (int i = 0; i < LINE_SENSOR_COUNT; i++)
     {
-        lineSensorState[i] = digitalRead(lineSensorPins[i]);
+        lineSensorState[i] = digitalRead(LINE_SENSOR_PINS[i]);
     }
 }
 
@@ -326,10 +335,10 @@ void setRightMotorDirection(bool direction)
 {
     if (direction)
     {
-        digitalWrite(rightMotorDirection, HIGH);
+        digitalWrite(RIGHT_MOTOR_DIRECTION, HIGH);
         return;
     }
-    digitalWrite(rightMotorDirection, LOW);
+    digitalWrite(RIGHT_MOTOR_DIRECTION, LOW);
 }
 
 /**
@@ -340,10 +349,10 @@ void setLeftMotorDirection(bool direction)
 {
     if (direction)
     {
-        digitalWrite(leftMotorDirection, LOW);
+        digitalWrite(LEFT_MOTOR_DIRECTION, LOW);
         return;
     }
-    digitalWrite(leftMotorDirection, HIGH);
+    digitalWrite(LEFT_MOTOR_DIRECTION, HIGH);
 }
 
 /**
@@ -352,7 +361,7 @@ void setLeftMotorDirection(bool direction)
  */
 void setLeftMotorSpeed(int speed)
 {
-    analogWrite(leftMotorSpeed, speed);
+    analogWrite(LEFT_MOTOR_SPEED, speed);
 }
 
 /**
@@ -361,7 +370,7 @@ void setLeftMotorSpeed(int speed)
  */
 void setRightMotorSpeed(int speed)
 {
-    analogWrite(rightMotorSpeed, speed);
+    analogWrite(RIGHT_MOTOR_SPEED, speed);
 }
 
 /**
@@ -487,8 +496,8 @@ void switchDisplay()
     if (millis() - lastSwitchTime > 10)
     {
         lastSwitchTime = millis();
-        digitalWrite(u1, targetLeftDisplay);
-        digitalWrite(u2, !targetLeftDisplay);
+        digitalWrite(U1, targetLeftDisplay);
+        digitalWrite(U2, !targetLeftDisplay);
         targetLeftDisplay = !targetLeftDisplay;
     }
 }
