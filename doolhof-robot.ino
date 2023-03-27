@@ -54,8 +54,9 @@ const int NUMBERS[NUMBER_COUNT][SEGMENT_ARRAY_SIZE] = {
 // the current display state
 bool targetLeftDisplay = true;
 unsigned long lastSwitchTime = 0;
-// the runtime in seconds
-int runTime = 0;
+// the runtime for the time counter
+int runTimeInSeconds = 0;
+int runTimeInMinutes = 0;
 unsigned long lastRunTimeUpdate = millis();
 
 // value to determine if the robot should run
@@ -152,7 +153,8 @@ bool checkIfRobotIsInitialized()
     if (lineSensorState[0] && lineSensorState[1] && !lineSensorState[2] && lineSensorState[3] && lineSensorState[4])
     {
         countdown();
-        runTime = 0;
+        runTimeInSeconds = 0;
+        runTimeInMinutes = 0;
         isFinished = false;
         initialized = true;
     }
@@ -186,7 +188,8 @@ void turnAroundIfObjectDetected()
 void finish()
 {
     makeCompleteStop();
-    blinkDisplayFinish();
+    blinkDisplayFinish(true);
+    blinkDisplayFinish(false);
     // reset the initialized variable for the next run
     initialized = false;
     isFinished = true;
@@ -381,9 +384,14 @@ void countRunTime()
     if (millis() - lastRunTimeUpdate >= 1000)
     {
         lastRunTimeUpdate = millis();
-        runTime++;
+        runTimeInSeconds++;
+        if (runTimeInSeconds >= 60)
+        {
+            runTimeInSeconds = 0;
+            runTimeInMinutes++;
+        }
     }
-    displayDigits(runTime);
+    displayDigits(runTimeInSeconds);
 }
 /**
  * countdown from 10 to 1 and show it on the 7 segment display, after 1 show st.
@@ -504,14 +512,16 @@ void switchDisplay()
 
 /**
  * Blink the display 3 times and show the finish message
+ * @param showInMinutes true = show the finish time in minutes, false = show the finish time in seconds
  */
-void blinkDisplayFinish()
+void blinkDisplayFinish(bool showInMinutes)
 {
     unsigned long lastBlinkTime = millis();
     int amountOfBlinks = 0;
     bool displayFinish = true;
     while (amountOfBlinks <= 4)
     {
+        // check if int is even
         switchDisplay();
         if (millis() - lastBlinkTime > 500)
         {
@@ -521,7 +531,10 @@ void blinkDisplayFinish()
         }
         if (displayFinish)
         {
-            displayDigits(runTime);
+            if (showInMinutes)
+                displayDigits(runTimeInMinutes);
+            if (!showInMinutes)
+                displayDigits(runTimeInSeconds);
         }
         else
         {
